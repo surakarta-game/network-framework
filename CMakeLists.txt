@@ -36,17 +36,24 @@ add_subdirectory(third-party/sockpp)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third-party/sockpp/include)
 
-SET(SOURCE
-    src/exceptions.cpp
-    src/client.cpp
-    src/server.cpp
-)
-add_library(network-common STATIC ${SOURCE})
-target_link_libraries(network-common sockpp)
+if(NOT TARGET network-common)
+    SET(SOURCE
+        src/exceptions.cpp
+        src/client.cpp
+        src/server.cpp
+    )
+    add_library(network-common SHARED ${SOURCE})
+    target_link_libraries(network-common sockpp)
+    if(WIN32)
+        set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    endif()
+endif()
 
-SET(TEST_SOURCE
-    src/test.cpp
-)
-add_executable(network-common-test ${TEST_SOURCE})
-target_link_libraries(network-common-test network-common)
-add_test(NAME network-common-test COMMAND network-common-test)
+if(NOT TARGET network-common-test)
+    SET(TEST_SOURCE
+        src/test.cpp
+    )
+    add_executable(network-common-test ${TEST_SOURCE})
+    target_link_libraries(network-common-test network-common)
+    add_test(NAME network-common-test COMMAND network-common-test)
+endif()
