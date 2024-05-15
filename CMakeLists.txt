@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(network-common)
+project(network-framework)
 enable_testing()
 
 set(CMAKE_CXX_STANDARD 17)
@@ -17,9 +17,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     # Do not enable -Wall -Wextra due to the third-party code
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+endif()
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     # To disable a false positive warning in libsockpp
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-stringop-truncation")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
@@ -33,15 +36,24 @@ add_subdirectory(third-party/sockpp)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third-party/sockpp/include)
 
-SET(SOURCE
-    src/sample.cpp
-)
-add_library(network-common STATIC ${SOURCE})
-target_link_libraries(network-common sockpp)
+if(NOT TARGET network-framework)
+    SET(SOURCE
+        src/exceptions.cpp
+        src/client.cpp
+        src/server.cpp
+    )
+    if(WIN32)
+        set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    endif()
+    add_library(network-framework SHARED ${SOURCE})
+    target_link_libraries(network-framework sockpp)
+endif()
 
-SET(TEST_SOURCE
-    src/test.cpp
-)
-add_executable(network-common-test ${TEST_SOURCE})
-target_link_libraries(network-common-test network-common)
-add_test(NAME network-common-test COMMAND network-common-test)
+if(NOT TARGET network-framework-test)
+    SET(TEST_SOURCE
+        src/test.cpp
+    )
+    add_executable(network-framework-test ${TEST_SOURCE})
+    target_link_libraries(network-framework-test network-framework)
+    add_test(NAME network-framework-test COMMAND network-framework-test)
+endif()
