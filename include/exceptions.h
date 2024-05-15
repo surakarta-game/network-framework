@@ -86,4 +86,21 @@ class InvalidMessageException final : public BaseException {
     std::string details_;
 };
 
+class BindPortException final : public BaseException {
+   public:
+    BindPortException(const std::string& address, int port, const std::string& details);
+
+    const char* what() const noexcept override;
+
+    std::string Address() const noexcept;
+    int Port() const noexcept;
+    std::string Details() const noexcept;
+
+   private:
+    std::string what_;
+    std::string address_;
+    int port_;
+    std::string details_;
+};
+
 }  // namespace NetworkFramework
