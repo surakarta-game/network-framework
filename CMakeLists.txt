@@ -32,9 +32,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 endif()
 
 add_subdirectory(third-party/sockpp)
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third-party/sockpp/include)
+add_subdirectory(third-party/nlohmann_json)
 
 if(NOT TARGET network-framework)
     SET(SOURCE
@@ -46,7 +44,12 @@ if(NOT TARGET network-framework)
         set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
     endif()
     add_library(network-framework SHARED ${SOURCE})
-    target_link_libraries(network-framework sockpp)
+    target_include_directories(network-framework
+        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/private-include
+    )
+    target_link_libraries(network-framework PRIVATE sockpp)
+    target_link_libraries(network-framework PRIVATE nlohmann_json)
 endif()
 
 if(NOT TARGET network-framework-test)
@@ -54,6 +57,6 @@ if(NOT TARGET network-framework-test)
         src/test.cpp
     )
     add_executable(network-framework-test ${TEST_SOURCE})
-    target_link_libraries(network-framework-test network-framework)
+    target_link_libraries(network-framework-test PRIVATE network-framework)
     add_test(NAME network-framework-test COMMAND network-framework-test)
 endif()

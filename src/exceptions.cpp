@@ -63,3 +63,20 @@ int NetworkFramework::ConnectionEstablishmentException::RemotePort() const noexc
 std::string NetworkFramework::ConnectionEstablishmentException::Details() const noexcept {
     return details_;
 }
+
+NetworkFramework::InvalidMessageException::InvalidMessageException(const std::string& message, const std::string& details)
+    : message_(message),
+      what_("Invalid message: message: " + message + ", details: " + details),
+      details_(details) {}
+
+const char* NetworkFramework::InvalidMessageException::what() const noexcept {
+    return what_.c_str();
+}
+
+std::string NetworkFramework::InvalidMessageException::Message() const noexcept {
+    return message_;
+}
+
+std::string NetworkFramework::InvalidMessageException::Details() const noexcept {
+    return details_;
+}

@@ -53,4 +53,21 @@ class ConnectionEstablishmentException final : public BaseException {
     std::string details_;
 };
 
+/// @brief An exception that is thrown when an invalid message is received.
+class InvalidMessageException final : public BaseException {
+   public:
+    InvalidMessageException(const std::string& message,
+                            const std::string& details);
+
+    const char* what() const noexcept override;
+
+    std::string Message() const noexcept;
+    std::string Details() const noexcept;
+
+   private:
+    std::string what_;
+    std::string message_;
+    std::string details_;
+};
+
 }  // namespace NetworkFramework
