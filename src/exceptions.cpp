@@ -41,15 +41,11 @@ std::string NetworkFramework::BrokenPipeException::Details() const noexcept {
 NetworkFramework::ConnectionEstablishmentException::ConnectionEstablishmentException(
     const std::string& address_remote,
     int port_remote,
-    const std::string& address_local,
-    int port_local,
     const std::string& details)
     : address_remote_(address_remote),
       port_remote_(port_remote),
-      address_local_(address_local),
-      port_local_(port_local),
       what_("Connection establishment failed: remote address: " + address_remote + ":" + std::to_string(port_remote) +
-            ", local address: " + address_local + ":" + std::to_string(port_local) + ", details: " + details),
+            ", details: " + details),
       details_(details) {}
 
 const char* NetworkFramework::ConnectionEstablishmentException::what() const noexcept {
@@ -62,14 +58,6 @@ std::string NetworkFramework::ConnectionEstablishmentException::RemoteAddress() 
 
 int NetworkFramework::ConnectionEstablishmentException::RemotePort() const noexcept {
     return port_remote_;
-}
-
-std::string NetworkFramework::ConnectionEstablishmentException::LocalAddress() const noexcept {
-    return address_local_;
-}
-
-int NetworkFramework::ConnectionEstablishmentException::LocalPort() const noexcept {
-    return port_local_;
 }
 
 std::string NetworkFramework::ConnectionEstablishmentException::Details() const noexcept {
