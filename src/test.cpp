@@ -1,5 +1,5 @@
-#include "network-common.h"
+#include "network_framework.h"
 
 int main() {
-    test();
+    return 0;
 }

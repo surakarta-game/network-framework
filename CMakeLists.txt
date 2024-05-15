@@ -34,7 +34,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third-party/sockpp/include)
 
 SET(SOURCE
-    src/sample.cpp
+    src/exceptions.cpp
+    src/client.cpp
+    src/server.cpp
 )
 add_library(network-common STATIC ${SOURCE})
 target_link_libraries(network-common sockpp)
