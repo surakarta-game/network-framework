@@ -4,13 +4,15 @@ NetworkFramework::BrokenPipeException::BrokenPipeException(
     const std::string& address_remote,
     int port_remote,
     const std::string& address_local,
-    int port_local)
+    int port_local,
+    const std::string& details)
     : address_remote_(address_remote),
       port_remote_(port_remote),
       address_local_(address_local),
       port_local_(port_local),
       what_("Broken pipe: remote address: " + address_remote + ":" + std::to_string(port_remote) +
-            ", local address: " + address_local + ":" + std::to_string(port_local)) {}
+            ", local address: " + address_local + ":" + std::to_string(port_local) + ", details: " + details),
+      details_(details) {}
 
 const char* NetworkFramework::BrokenPipeException::what() const noexcept {
     return what_.c_str();
@@ -32,17 +34,19 @@ int NetworkFramework::BrokenPipeException::LocalPort() const noexcept {
     return port_local_;
 }
 
+std::string NetworkFramework::BrokenPipeException::Details() const noexcept {
+    return details_;
+}
+
 NetworkFramework::ConnectionEstablishmentException::ConnectionEstablishmentException(
     const std::string& address_remote,
     int port_remote,
-    const std::string& address_local,
-    int port_local)
+    const std::string& details)
     : address_remote_(address_remote),
       port_remote_(port_remote),
-      address_local_(address_local),
-      port_local_(port_local),
       what_("Connection establishment failed: remote address: " + address_remote + ":" + std::to_string(port_remote) +
-            ", local address: " + address_local + ":" + std::to_string(port_local)) {}
+            ", details: " + details),
+      details_(details) {}
 
 const char* NetworkFramework::ConnectionEstablishmentException::what() const noexcept {
     return what_.c_str();
@@ -56,10 +60,23 @@ int NetworkFramework::ConnectionEstablishmentException::RemotePort() const noexc
     return port_remote_;
 }
 
-std::string NetworkFramework::ConnectionEstablishmentException::LocalAddress() const noexcept {
-    return address_local_;
+std::string NetworkFramework::ConnectionEstablishmentException::Details() const noexcept {
+    return details_;
 }
 
-int NetworkFramework::ConnectionEstablishmentException::LocalPort() const noexcept {
-    return port_local_;
+NetworkFramework::InvalidMessageException::InvalidMessageException(const std::string& message, const std::string& details)
+    : message_(message),
+      what_("Invalid message: message: " + message + ", details: " + details),
+      details_(details) {}
+
+const char* NetworkFramework::InvalidMessageException::what() const noexcept {
+    return what_.c_str();
+}
+
+std::string NetworkFramework::InvalidMessageException::Message() const noexcept {
+    return message_;
+}
+
+std::string NetworkFramework::InvalidMessageException::Details() const noexcept {
+    return details_;
 }

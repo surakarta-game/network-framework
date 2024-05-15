@@ -1,6 +1,6 @@
 #pragma once
-#include <service_factory.h>
 #include <string>
+#include "service.h"
 
 namespace NetworkFramework {
 

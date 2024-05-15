@@ -5,5 +5,4 @@
 #include "message.h"
 #include "server.h"
 #include "service.h"
-#include "service_factory.h"
 #include "socket.h"

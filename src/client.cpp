@@ -1,6 +1,35 @@
 #include "connect_to_server.h"
+#include "exceptions.h"
+#include "sockpp/connector.h"
+#include "sockpp_socket.h"
 
 std::unique_ptr<NetworkFramework::Socket>
 NetworkFramework::ConnectToServer(const std::string& address_remote, int port_remote) {
-    return std::unique_ptr<Socket>();
+    try {
+        auto addr = sockpp::inet6_address(address_remote, port_remote);
+        auto connector = sockpp::tcp6_connector();
+        auto result = connector.connect(addr);
+        if (result.is_error()) {
+            throw ConnectionEstablishmentException(
+                address_remote,
+                port_remote,
+                result.error_message());
+        }
+        return std::make_unique<SockppSocket>(std::move(connector));
+    } catch (const std::system_error& error) {
+        throw ConnectionEstablishmentException(
+            address_remote,
+            port_remote,
+            error.what());
+    } catch (const std::exception& error) {
+        throw ConnectionEstablishmentException(
+            address_remote,
+            port_remote,
+            error.what());
+    } catch (...) {
+        throw ConnectionEstablishmentException(
+            address_remote,
+            port_remote,
+            "Unknown error");
+    }
 }
