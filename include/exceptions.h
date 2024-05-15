@@ -7,6 +7,22 @@ namespace NetworkFramework {
 /// @brief Base class for all exceptions thrown by the network framework.
 class BaseException : public std::exception {};
 
+/// @brief An exception that is thrown when an invalid address is used.
+class InvalidAddressOrPortException final : public BaseException {
+   public:
+    InvalidAddressOrPortException(const std::string& address, int port);
+
+    const char* what() const noexcept override;
+
+    std::string Address() const noexcept;
+    int Port() const noexcept;
+
+   private:
+    std::string what_;
+    std::string address_;
+    int port_;
+};
+
 /// @brief An exception that is thrown when a socket is closed unexpectedly.
 class BrokenPipeException final : public BaseException {
    public:
@@ -67,6 +83,23 @@ class InvalidMessageException final : public BaseException {
    private:
     std::string what_;
     std::string message_;
+    std::string details_;
+};
+
+class BindPortException final : public BaseException {
+   public:
+    BindPortException(const std::string& address, int port, const std::string& details);
+
+    const char* what() const noexcept override;
+
+    std::string Address() const noexcept;
+    int Port() const noexcept;
+    std::string Details() const noexcept;
+
+   private:
+    std::string what_;
+    std::string address_;
+    int port_;
     std::string details_;
 };
 

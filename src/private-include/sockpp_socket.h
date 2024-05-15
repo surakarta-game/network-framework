@@ -3,17 +3,18 @@
 #include <streambuf>
 #include "exceptions.h"
 #include "nlohmann/json.hpp"
+#include "sockpp/inet_address.h"
 #include "sockpp/tcp6_connector.h"
 
 namespace NetworkFramework {
 
 class SockppSocket final : public Socket {
    private:
-    sockpp::tcp6_connector socket;
+    sockpp::stream_socket socket;
     std::string received_string;
 
    public:
-    SockppSocket(sockpp::tcp6_connector&& socket)
+    SockppSocket(sockpp::stream_socket&& socket)
         : socket(std::move(socket)) {}
 
     ~SockppSocket() override {
@@ -31,7 +32,10 @@ class SockppSocket final : public Socket {
         std::string message_json_str = message_json.dump();
         assert(message_json_str.find('\n') == std::string::npos);  // Ensure that the message does not contain a newline character
         std::string message_str = message_json_str + "\n";
-        socket.send(message_str);
+        auto result = socket.send(message_str);
+        if (result.is_error()) {
+            ThrowBrokenPipeException(result);
+        }
     }
 
     std::optional<Message> Receive() override {
@@ -92,20 +96,7 @@ class SockppSocket final : public Socket {
         char buffer[1024 + 1];
         auto result = socket.recv(buffer, sizeof(buffer) - 1);
         if (result.is_error()) {
-            const auto peer_address_string = socket.peer_address().to_string();
-            const auto index = peer_address_string.find_last_of(':');
-            const auto address_remote = peer_address_string.substr(0, index);
-            const auto port_remote = std::stoi(peer_address_string.substr(index + 1));
-            const auto local_address_string = socket.address().to_string();
-            const auto local_index = local_address_string.find_last_of(':');
-            const auto address_local = local_address_string.substr(0, local_index);
-            const auto port_local = std::stoi(local_address_string.substr(local_index + 1));
-            throw BrokenPipeException(
-                address_remote,
-                port_remote,
-                address_local,
-                port_local,
-                result.error_message());
+            ThrowBrokenPipeException(result);
         }
         int length = result.value();
         assert(length < sizeof(buffer));
@@ -114,6 +105,35 @@ class SockppSocket final : public Socket {
             printf("Received message without newline character, this may cause bugs in other implementations of the protocol");
         }
         received_string += buffer;
+    }
+
+    std::string AddressToString(sockpp::sock_address_any address) {
+        if (address.family() == AF_INET) {
+            const auto address4 = sockpp::inet_address(address);
+            return address4.to_string();
+        }
+        if (address.family() == AF_INET6) {
+            const auto address6 = sockpp::inet6_address(address);
+            return address6.to_string();
+        }
+        return "<unknown address family>";
+    }
+
+    void ThrowBrokenPipeException(sockpp::result<size_t> result) {
+        const auto peer_address_string = AddressToString(socket.peer_address());
+        const auto index = peer_address_string.find_last_of(':');
+        const auto address_remote = peer_address_string.substr(0, index);
+        const auto port_remote = std::stoi(peer_address_string.substr(index + 1));
+        const auto local_address_string = AddressToString(socket.address());
+        const auto local_index = local_address_string.find_last_of(':');
+        const auto address_local = local_address_string.substr(0, local_index);
+        const auto port_local = std::stoi(local_address_string.substr(local_index + 1));
+        throw BrokenPipeException(
+            address_remote,
+            port_remote,
+            address_local,
+            port_local,
+            result.error_message());
     }
 };
 
