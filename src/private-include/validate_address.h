@@ -4,7 +4,7 @@
 
 namespace NetworkFramework {
 
-sockpp::inet6_address ValidateAddress(const std::string& address, int port) {
+inline sockpp::inet6_address ValidateAddress(const std::string& address, int port) {
     try {
         return sockpp::inet6_address(address, port);
     } catch (const std::exception&) {
