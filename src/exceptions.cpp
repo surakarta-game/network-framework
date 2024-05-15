@@ -1,5 +1,23 @@
 #include "exceptions.h"
 
+NetworkFramework::InvalidAddressOrPortException::InvalidAddressOrPortException(const std::string& address,
+                                                                               int port)
+    : address_(address),
+      port_(port),
+      what_("Invalid address: " + address + ":" + std::to_string(port)) {}
+
+const char* NetworkFramework::InvalidAddressOrPortException::what() const noexcept {
+    return what_.c_str();
+}
+
+std::string NetworkFramework::InvalidAddressOrPortException::Address() const noexcept {
+    return address_;
+}
+
+int NetworkFramework::InvalidAddressOrPortException::Port() const noexcept {
+    return port_;
+}
+
 NetworkFramework::BrokenPipeException::BrokenPipeException(
     const std::string& address_remote,
     int port_remote,

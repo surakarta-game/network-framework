@@ -2,11 +2,12 @@
 #include "exceptions.h"
 #include "sockpp/connector.h"
 #include "sockpp_socket.h"
+#include "validate_address.h"
 
 std::unique_ptr<NetworkFramework::Socket>
 NetworkFramework::ConnectToServer(const std::string& address_remote, int port_remote) {
     try {
-        auto addr = sockpp::inet6_address(address_remote, port_remote);
+        auto addr = ValidateAddress(address_remote, port_remote);
         auto connector = sockpp::tcp6_connector();
         auto result = connector.connect(addr);
         if (result.is_error()) {
