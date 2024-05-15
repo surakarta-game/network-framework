@@ -42,11 +42,11 @@ if(NOT TARGET network-common)
         src/client.cpp
         src/server.cpp
     )
-    add_library(network-common SHARED ${SOURCE})
-    target_link_libraries(network-common sockpp)
     if(WIN32)
         set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
     endif()
+    add_library(network-common SHARED ${SOURCE})
+    target_link_libraries(network-common sockpp)
 endif()
 
 if(NOT TARGET network-common-test)
