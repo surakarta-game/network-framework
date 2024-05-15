@@ -31,7 +31,23 @@ class SockppSocket final : public Socket {
         std::string message_json_str = message_json.dump();
         assert(message_json_str.find('\n') == std::string::npos);  // Ensure that the message does not contain a newline character
         std::string message_str = message_json_str + "\n";
-        socket.send(message_str);
+        auto result = socket.send(message_str);
+        if (result.is_error()) {
+            const auto peer_address_string = socket.peer_address().to_string();
+            const auto index = peer_address_string.find_last_of(':');
+            const auto address_remote = peer_address_string.substr(0, index);
+            const auto port_remote = std::stoi(peer_address_string.substr(index + 1));
+            const auto local_address_string = socket.address().to_string();
+            const auto local_index = local_address_string.find_last_of(':');
+            const auto address_local = local_address_string.substr(0, local_index);
+            const auto port_local = std::stoi(local_address_string.substr(local_index + 1));
+            throw BrokenPipeException(
+                address_remote,
+                port_remote,
+                address_local,
+                port_local,
+                result.error_message());
+        }
     }
 
     std::optional<Message> Receive() override {
@@ -84,7 +100,23 @@ class SockppSocket final : public Socket {
 
     void Close() override {
         // Close the connection
-        socket.close();
+        auto result = socket.close();
+        if (result.is_error()) {
+            const auto peer_address_string = socket.peer_address().to_string();
+            const auto index = peer_address_string.find_last_of(':');
+            const auto address_remote = peer_address_string.substr(0, index);
+            const auto port_remote = std::stoi(peer_address_string.substr(index + 1));
+            const auto local_address_string = socket.address().to_string();
+            const auto local_index = local_address_string.find_last_of(':');
+            const auto address_local = local_address_string.substr(0, local_index);
+            const auto port_local = std::stoi(local_address_string.substr(local_index + 1));
+            throw BrokenPipeException(
+                address_remote,
+                port_remote,
+                address_local,
+                port_local,
+                result.error_message());
+        }
     }
 
    private:
