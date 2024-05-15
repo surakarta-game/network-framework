@@ -17,9 +17,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     # Do not enable -Wall -Wextra due to the third-party code
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+endif()
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     # To disable a false positive warning in libsockpp
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-stringop-truncation")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
