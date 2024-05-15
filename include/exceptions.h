@@ -13,7 +13,8 @@ class BrokenPipeException final : public BaseException {
     BrokenPipeException(const std::string& address_remote,
                         int port_remote,
                         const std::string& address_local,
-                        int port_local);
+                        int port_local,
+                        const std::string& details);
 
     const char* what() const noexcept override;
 
@@ -21,6 +22,7 @@ class BrokenPipeException final : public BaseException {
     int RemotePort() const noexcept;
     std::string LocalAddress() const noexcept;
     int LocalPort() const noexcept;
+    std::string Details() const noexcept;
 
    private:
     std::string what_;
@@ -28,6 +30,7 @@ class BrokenPipeException final : public BaseException {
     int port_remote_;
     std::string address_local_;
     int port_local_;
+    std::string details_;
 };
 
 /// @brief An exception that is thrown when a connection could not be established.
@@ -36,7 +39,8 @@ class ConnectionEstablishmentException final : public BaseException {
     ConnectionEstablishmentException(const std::string& address_remote,
                                      int port_remote,
                                      const std::string& address_local,
-                                     int port_local);
+                                     int port_local,
+                                     const std::string& details);
 
     const char* what() const noexcept override;
 
@@ -44,6 +48,7 @@ class ConnectionEstablishmentException final : public BaseException {
     int RemotePort() const noexcept;
     std::string LocalAddress() const noexcept;
     int LocalPort() const noexcept;
+    std::string Details() const noexcept;
 
    private:
     std::string what_;
@@ -51,6 +56,7 @@ class ConnectionEstablishmentException final : public BaseException {
     int port_remote_;
     std::string address_local_;
     int port_local_;
+    std::string details_;
 };
 
 }  // namespace NetworkFramework
