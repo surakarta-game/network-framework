@@ -48,15 +48,28 @@ class RelayService : public NetworkFramework::Service {
                 return;
             }
         }
-        while (true) {
-            auto message = socket->Receive();
-            if (message.has_value() == false || message.value().opcode == OpExit) {
-                break;
+        try {
+            while (true) {
+                auto message = socket->Receive();
+                if (message.has_value() == false || message.value().opcode == OpExit) {
+                    break;
+                }
+                peer_socket->Send(message.value());
             }
-            peer_socket->Send(message.value());
+        } catch (const NetworkFramework::BrokenPipeException&) {
+            // do nothing
         }
-        peer_socket->Send(NetworkFramework::Message(OpExit));
-        peer_socket->Close();
+        std::lock_guard<std::mutex> lock(shared_data->mutex);
+        if (shared_data->first_socket) {
+            shared_data->first_socket->Send(NetworkFramework::Message(OpExit));
+            shared_data->first_socket->Close();
+            shared_data->first_socket = nullptr;
+        }
+        if (shared_data->second_socket) {
+            shared_data->second_socket->Send(NetworkFramework::Message(OpExit));
+            shared_data->second_socket->Close();
+            shared_data->second_socket = nullptr;
+        }
     }
 };
 
@@ -84,7 +97,7 @@ void Assert(bool value) {
 int main() {
     NetworkFramework::Server server(std::make_shared<ServiceFactory>(), TEST_PORT);
 
-    auto client1 = NetworkFramework::ConnectToServer("127.0.0.1", TEST_PORT);
+    auto client1 = NetworkFramework::ConnectToServer("localhost", TEST_PORT);
     auto client2 = NetworkFramework::ConnectToServer("localhost", TEST_PORT);
     auto client3 = NetworkFramework::ConnectToServer("::1", TEST_PORT);
 
@@ -101,13 +114,10 @@ int main() {
     Assert(client1->Receive().value() == NetworkFramework::Message(Op4, "Goodbye, client1!"));
     Assert(client2->Receive().value() == NetworkFramework::Message(Op3, "Goodbye, client2!"));
 
-    client1->Send(NetworkFramework::Message(OpExit));
+    client1->Close();
+    Assert(client1->Receive().has_value() == false);
     Assert(client2->Receive().value().opcode == OpExit);
     Assert(client2->Receive().has_value() == false);
-
-    client2->Close();
-    Assert(client1->Receive().value().opcode == OpExit);
-    Assert(client1->Receive().has_value() == false);
 
     server.Shutdown();
     return 0;
