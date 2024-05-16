@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <condition_variable>
 #include <mutex>
 #include "network_framework.h"
@@ -74,44 +73,41 @@ class ServiceFactory : public NetworkFramework::ServiceFactory {
     }
 };
 
-void ensure_assert_valid() {
-    int a = 0;
-    assert(a = 1);
-    if (a == 0) {
-        printf("assert() is not asserted\n");
+// assert() is not always asserted
+void Assert(bool value) {
+    if (!value) {
+        printf("Assert failed!\n");
         exit(-1);
     }
 }
 
 int main() {
-    ensure_assert_valid();
-
     NetworkFramework::Server server(std::make_shared<ServiceFactory>(), TEST_PORT);
 
     auto client1 = NetworkFramework::ConnectToServer("127.0.0.1", TEST_PORT);
     auto client2 = NetworkFramework::ConnectToServer("localhost", TEST_PORT);
     auto client3 = NetworkFramework::ConnectToServer("::1", TEST_PORT);
 
-    assert(client3->Receive().value().opcode == OpError);
-    assert(client3->Receive().has_value() == false);
+    Assert(client3->Receive().value().opcode == OpError);
+    Assert(client3->Receive().has_value() == false);
 
     client1->Send(NetworkFramework::Message(Op1, "Hello, client2!"));
     client2->Send(NetworkFramework::Message(Op2, "Hello, client1!"));
-    assert(client1->Receive().value() == NetworkFramework::Message(Op2, "Hello, client1!"));
-    assert(client2->Receive().value() == NetworkFramework::Message(Op1, "Hello, client2!"));
+    Assert(client1->Receive().value() == NetworkFramework::Message(Op2, "Hello, client1!"));
+    Assert(client2->Receive().value() == NetworkFramework::Message(Op1, "Hello, client2!"));
 
     client1->Send(NetworkFramework::Message(Op3, "Goodbye, client2!"));
     client2->Send(NetworkFramework::Message(Op4, "Goodbye, client1!"));
-    assert(client1->Receive().value() == NetworkFramework::Message(Op4, "Goodbye, client1!"));
-    assert(client2->Receive().value() == NetworkFramework::Message(Op3, "Goodbye, client2!"));
+    Assert(client1->Receive().value() == NetworkFramework::Message(Op4, "Goodbye, client1!"));
+    Assert(client2->Receive().value() == NetworkFramework::Message(Op3, "Goodbye, client2!"));
 
     client1->Send(NetworkFramework::Message(OpExit));
-    assert(client2->Receive().value().opcode == OpExit);
-    assert(client2->Receive().has_value() == false);
+    Assert(client2->Receive().value().opcode == OpExit);
+    Assert(client2->Receive().has_value() == false);
 
     client2->Close();
-    assert(client1->Receive().value().opcode == OpExit);
-    assert(client1->Receive().has_value() == false);
+    Assert(client1->Receive().value().opcode == OpExit);
+    Assert(client1->Receive().has_value() == false);
 
     server.Shutdown();
     return 0;
