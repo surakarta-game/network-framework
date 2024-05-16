@@ -1,3 +1,15 @@
+/*
+ *  Description: This file implements NetworkFramework::ConnectToServer(),
+ *               which is defined in include/connect_to_server.h.
+ *
+ *  Author(s):
+ *      Nictheboy Li    <nictheboy@outlook.com>
+ *
+ *  License:
+ *      MIT License, feel free to use and modify this file!
+ *
+ */
+
 #include <thread>
 #include "connect_to_server.h"
 #include "exceptions.h"
