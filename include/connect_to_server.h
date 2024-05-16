@@ -9,6 +9,6 @@ namespace NetworkFramework {
 /// @param port_remote The port number of the server.
 /// @return A socket that is connected to the server.
 /// @throw ConnectionEstablishmentException if the connection could not be established.
-std::unique_ptr<Socket> ConnectToServer(const std::string& address_remote, int port_remote);
+std::unique_ptr<Socket> ConnectToServer(const std::string& address_remote, int port_remote, int retry_count = 3);
 
 }  // namespace NetworkFramework
