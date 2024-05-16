@@ -74,7 +74,18 @@ class ServiceFactory : public NetworkFramework::ServiceFactory {
     }
 };
 
+void ensure_assert_valid() {
+    int a = 0;
+    assert(a = 1);
+    if (a == 0) {
+        printf("assert() is not asserted\n");
+        exit(-1);
+    }
+}
+
 int main() {
+    ensure_assert_valid();
+
     NetworkFramework::Server server(std::make_shared<ServiceFactory>(), TEST_PORT);
 
     auto client1 = NetworkFramework::ConnectToServer("localhost", TEST_PORT);
