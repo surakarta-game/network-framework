@@ -17,7 +17,7 @@
 #include <thread>
 #include "connect_to_server.h"
 #include "service.h"
-#include "sockpp/tcp6_acceptor.h"
+#include "sockpp/tcp_acceptor.h"
 #include "sockpp_socket.h"
 #include "validate_address.h"
 
@@ -27,7 +27,7 @@ class ServerImpl {
    private:
     class Daemon {
        public:
-        Daemon(std::unique_ptr<sockpp::tcp6_acceptor> acceptor, std::shared_ptr<ServiceFactory> service_factory)
+        Daemon(std::unique_ptr<sockpp::tcp_acceptor> acceptor, std::shared_ptr<ServiceFactory> service_factory)
             : acceptor_(std::move(acceptor)), service_factory_(service_factory) {}
 
         void operator()() {
@@ -40,7 +40,7 @@ class ServerImpl {
                     break;
                 }
                 auto wrapped_socket = std::make_shared<SockppSocket>(
-                    std::make_unique<sockpp::tcp6_socket>(result.value().clone()));
+                    std::make_unique<sockpp::tcp_socket>(result.value().clone()));
                 sockets_.push_back(wrapped_socket);
                 std::shared_ptr<Service> service = service_factory_->Create();
                 auto thread = std::make_unique<std::thread>([service, wrapped_socket]() {
@@ -64,7 +64,7 @@ class ServerImpl {
         }
 
        private:
-        std::unique_ptr<sockpp::tcp6_acceptor> acceptor_;
+        std::unique_ptr<sockpp::tcp_acceptor> acceptor_;
         std::shared_ptr<ServiceFactory> service_factory_;
         std::vector<std::shared_ptr<SockppSocket>> sockets_;
         std::vector<std::unique_ptr<std::thread>> threads_;
@@ -81,7 +81,7 @@ class ServerImpl {
         : port_(listen_port) {
         sockpp::initialize();
         sockpp::error_code acceptor_error_code;
-        std::unique_ptr<sockpp::tcp6_acceptor> acceptor = std::make_unique<sockpp::tcp6_acceptor>(listen_port, 5, acceptor_error_code);
+        std::unique_ptr<sockpp::tcp_acceptor> acceptor = std::make_unique<sockpp::tcp_acceptor>(listen_port, 5, acceptor_error_code);
         if (acceptor_error_code)
             throw BindPortException(listen_port, acceptor_error_code.message());
         daemon_ = std::make_unique<Daemon>(std::move(acceptor), service_factory);

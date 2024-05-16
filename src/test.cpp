@@ -134,8 +134,8 @@ int main() {
 
     // Connect to the server
     auto client1 = NetworkFramework::ConnectToServer("localhost", port);
-    auto client2 = NetworkFramework::ConnectToServer("localhost", port);
-    auto client3 = NetworkFramework::ConnectToServer("::1", port);
+    auto client2 = NetworkFramework::ConnectToServer("127.0.0.1", port);
+    auto client3 = NetworkFramework::ConnectToServer("127.0.0.1", port);
 
     Assert(client3->Receive().value().opcode == OpError);
     Assert(client3->Receive().has_value() == false);

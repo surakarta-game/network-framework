@@ -19,7 +19,7 @@
 namespace NetworkFramework {
 
 /// @brief Connect to a server.
-/// @param address_remote The IP address of the server. IPv4 or IPv6.
+/// @param address_remote The IP address of the server. Only IPv4 is supported currently.
 /// @param port_remote The port number of the server.
 /// @return A socket that is connected to the server.
 /// @throw ConnectionEstablishmentException if the connection could not be established.
