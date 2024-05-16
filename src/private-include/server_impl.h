@@ -3,8 +3,9 @@
 #pragma once
 #include <string>
 #include <thread>
+#include "connect_to_server.h"
 #include "service.h"
-#include "sockpp/acceptor.h"
+#include "sockpp/tcp6_acceptor.h"
 #include "sockpp_socket.h"
 #include "validate_address.h"
 
@@ -14,33 +15,34 @@ class ServerImpl {
    private:
     class Daemon {
        public:
-        Daemon(sockpp::acceptor& acceptor, std::shared_ptr<ServiceFactory> service_factory)
-            : acceptor_(acceptor), service_factory_(service_factory) {}
+        Daemon(std::unique_ptr<sockpp::tcp6_acceptor> acceptor, std::shared_ptr<ServiceFactory> service_factory)
+            : acceptor_(std::move(acceptor)), service_factory_(service_factory) {}
 
         void operator()() {
             while (true) {
-                auto socket = acceptor_.accept();
-                if (socket.is_error()) {
+                auto result = acceptor_->accept();
+                if (acceptor_->is_open() == false) {
                     break;
                 }
-                auto wrapped_socket = std::make_shared<SockppSocket>(socket.value().clone());
+                if (result.is_error()) {
+                    break;
+                }
+                auto wrapped_socket = std::make_shared<SockppSocket>(
+                    std::make_unique<sockpp::tcp6_socket>(result.value().clone()));
                 sockets_.push_back(wrapped_socket);
-                auto thread = std::make_unique<std::thread>([this, wrapped_socket]() {
-                    auto service = service_factory_->Create();
+                std::shared_ptr<Service> service = service_factory_->Create();
+                auto thread = std::make_unique<std::thread>([service, wrapped_socket]() {
                     service->Execute(wrapped_socket);
                 });
                 threads_.push_back(std::move(thread));
             }
-            Shutdown();
         }
 
-       private:
-        sockpp::acceptor& acceptor_;
-        std::shared_ptr<ServiceFactory> service_factory_;
-        std::vector<std::shared_ptr<SockppSocket>> sockets_;
-        std::vector<std::unique_ptr<std::thread>> threads_;
-
         void Shutdown() {
+            if (acceptor_->is_open()) {
+                acceptor_->shutdown();
+                acceptor_->close();
+            }
             for (auto socket : sockets_) {
                 socket->Close();
             }
@@ -48,24 +50,33 @@ class ServerImpl {
                 thread->join();
             }
         }
+
+       private:
+        std::unique_ptr<sockpp::tcp6_acceptor> acceptor_;
+        std::shared_ptr<ServiceFactory> service_factory_;
+        std::vector<std::shared_ptr<SockppSocket>> sockets_;
+        std::vector<std::unique_ptr<std::thread>> threads_;
     };
 
    private:
-    sockpp::acceptor acceptor_;
+    int port_;
+    std::shared_ptr<Daemon> daemon_;
     std::unique_ptr<std::thread> daemon_thread_;
 
    public:
     ServerImpl(std::shared_ptr<ServiceFactory> service_factory,
-               int listen_port,
-               const std::string& listen_address = "::") {
-        auto address = ValidateAddress(listen_address, listen_port);
-        try {
-            acceptor_.bind(address);
-        } catch (const std::exception& e) {
-            throw BindPortException(listen_address, listen_port, e.what());
-        }
-        acceptor_.listen();
-        daemon_thread_ = std::make_unique<std::thread>(Daemon(acceptor_, service_factory));
+               int listen_port)
+        : port_(listen_port) {
+        sockpp::initialize();
+        sockpp::error_code acceptor_error_code;
+        std::unique_ptr<sockpp::tcp6_acceptor> acceptor = std::make_unique<sockpp::tcp6_acceptor>(listen_port, 5, acceptor_error_code);
+        if (acceptor_error_code)
+            throw BindPortException(listen_port, acceptor_error_code.message());
+        daemon_ = std::make_unique<Daemon>(std::move(acceptor), service_factory);
+        auto daemon_ptr_copy = daemon_;
+        daemon_thread_ = std::make_unique<std::thread>([daemon_ptr_copy]() {
+            (*daemon_ptr_copy)();
+        });
     }
 
     ~ServerImpl() {
@@ -73,8 +84,13 @@ class ServerImpl {
     }
 
     void Shutdown() {
-        acceptor_.close();
         if (daemon_thread_ && daemon_thread_->joinable()) {
+            daemon_->Shutdown();
+            try {
+                auto temp_client = ConnectToServer("localhost", port_);  // Connect to server to unblock acceptor_->accept()
+            } catch (...) {
+                // Ignore the exception
+            }
             daemon_thread_->join();
         }
     }

@@ -1,5 +1,6 @@
 #pragma once
 #include <stdio.h>
+#include <mutex>
 #include <streambuf>
 #include "exceptions.h"
 #include "nlohmann/json.hpp"
@@ -10,12 +11,15 @@ namespace NetworkFramework {
 
 class SockppSocket final : public Socket {
    private:
-    sockpp::stream_socket socket;
+    std::unique_ptr<sockpp::socket> socket_read;
+    std::unique_ptr<sockpp::socket> socket_write;
     std::string received_string;
+    std::mutex mutex_read;
+    std::mutex mutex_write;
 
    public:
-    SockppSocket(sockpp::stream_socket&& socket)
-        : socket(std::move(socket)) {}
+    SockppSocket(std::unique_ptr<sockpp::socket> socket)
+        : socket_read(std::make_unique<sockpp::socket>(socket->clone())), socket_write(std::make_unique<sockpp::socket>(socket->clone())) {}
 
     ~SockppSocket() override {
         Close();
@@ -23,6 +27,7 @@ class SockppSocket final : public Socket {
 
     void Send(Message message) override {
         // Send the message to the server
+        std::lock_guard lk(mutex_write);
         nlohmann::json message_json = {
             {"op", static_cast<int>(message.opcode)},
             {"data1", message.data1},
@@ -32,16 +37,22 @@ class SockppSocket final : public Socket {
         std::string message_json_str = message_json.dump();
         assert(message_json_str.find('\n') == std::string::npos);  // Ensure that the message does not contain a newline character
         std::string message_str = message_json_str + "\n";
-        auto result = socket.send(message_str);
+        auto result = socket_write->send(message_str);
         if (result.is_error()) {
-            ThrowBrokenPipeException(result);
+            throw BrokenPipeException(result.error_message());
         }
     }
 
     std::optional<Message> Receive() override {
         // Receive the message from the server
         while (received_string.find('\n') == std::string::npos) {
-            ReceiveOne();
+            if (socket_read->is_open() == false) {
+                return std::nullopt;
+            }
+            bool result = ReceiveOne();
+            if (result == false) {
+                return std::nullopt;
+            }
         }
         auto newline_index = received_string.find('\n');
         std::string message_str = received_string.substr(0, newline_index);
@@ -88,52 +99,34 @@ class SockppSocket final : public Socket {
 
     void Close() override {
         // Close the connection
-        socket.close();
+        socket_write->shutdown();
+        socket_write->close();
+        socket_read->shutdown();
+        socket_read->close();
     }
 
    private:
-    void ReceiveOne() {
+    bool ReceiveOne() {
+        std::lock_guard lk(mutex_read);
+        if (socket_read->is_open() == false) {
+            return false;
+        }
         char buffer[1024 + 1];
-        auto result = socket.recv(buffer, sizeof(buffer) - 1);
+        auto result = socket_read->recv(buffer, sizeof(buffer) - 1);
         if (result.is_error()) {
-            ThrowBrokenPipeException(result);
+            throw BrokenPipeException(result.error_message());
         }
         int length = result.value();
+        if (length == 0) {
+            return false;
+        }
         assert(length < sizeof(buffer));
         buffer[length] = '\0';
         if (length > 0 && buffer[length - 1] != '\n') {
             printf("Received message without newline character, this may cause bugs in other implementations of the protocol");
         }
         received_string += buffer;
-    }
-
-    std::string AddressToString(sockpp::sock_address_any address) {
-        if (address.family() == AF_INET) {
-            const auto address4 = sockpp::inet_address(address);
-            return address4.to_string();
-        }
-        if (address.family() == AF_INET6) {
-            const auto address6 = sockpp::inet6_address(address);
-            return address6.to_string();
-        }
-        return "<unknown address family>";
-    }
-
-    void ThrowBrokenPipeException(sockpp::result<size_t> result) {
-        const auto peer_address_string = AddressToString(socket.peer_address());
-        const auto index = peer_address_string.find_last_of(':');
-        const auto address_remote = peer_address_string.substr(0, index);
-        const auto port_remote = std::stoi(peer_address_string.substr(index + 1));
-        const auto local_address_string = AddressToString(socket.address());
-        const auto local_index = local_address_string.find_last_of(':');
-        const auto address_local = local_address_string.substr(0, local_index);
-        const auto port_local = std::stoi(local_address_string.substr(local_index + 1));
-        throw BrokenPipeException(
-            address_remote,
-            port_remote,
-            address_local,
-            port_local,
-            result.error_message());
+        return true;
     }
 };
 

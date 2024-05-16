@@ -26,26 +26,14 @@ class InvalidAddressOrPortException final : public BaseException {
 /// @brief An exception that is thrown when a socket is closed unexpectedly.
 class BrokenPipeException final : public BaseException {
    public:
-    BrokenPipeException(const std::string& address_remote,
-                        int port_remote,
-                        const std::string& address_local,
-                        int port_local,
-                        const std::string& details);
+    BrokenPipeException(const std::string& details);
 
     const char* what() const noexcept override;
 
-    std::string RemoteAddress() const noexcept;
-    int RemotePort() const noexcept;
-    std::string LocalAddress() const noexcept;
-    int LocalPort() const noexcept;
     std::string Details() const noexcept;
 
    private:
     std::string what_;
-    std::string address_remote_;
-    int port_remote_;
-    std::string address_local_;
-    int port_local_;
     std::string details_;
 };
 
@@ -88,17 +76,15 @@ class InvalidMessageException final : public BaseException {
 
 class BindPortException final : public BaseException {
    public:
-    BindPortException(const std::string& address, int port, const std::string& details);
+    BindPortException(int port, const std::string& details);
 
     const char* what() const noexcept override;
 
-    std::string Address() const noexcept;
     int Port() const noexcept;
     std::string Details() const noexcept;
 
    private:
     std::string what_;
-    std::string address_;
     int port_;
     std::string details_;
 };

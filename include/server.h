@@ -16,8 +16,7 @@ class Server {
     /// @param listen_port The port to listen on.
     /// @param listen_address The address to listen on, use :: for all network interfaces.
     Server(std::shared_ptr<ServiceFactory> service_factory,
-           int listen_port,
-           const std::string& listen_address = "::");
+           int listen_port);
     ~Server();
 
     /// @brief Stop listening and close all connections.
