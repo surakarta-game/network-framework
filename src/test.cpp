@@ -98,8 +98,8 @@ int main() {
     NetworkFramework::Server server(std::make_shared<ServiceFactory>(), TEST_PORT);
 
     auto client1 = NetworkFramework::ConnectToServer("localhost", TEST_PORT);
-    auto client2 = NetworkFramework::ConnectToServer("localhost", TEST_PORT);
-    auto client3 = NetworkFramework::ConnectToServer("::1", TEST_PORT);
+    auto client2 = NetworkFramework::ConnectToServer("127.0.0.1", TEST_PORT);
+    auto client3 = NetworkFramework::ConnectToServer("127.0.0.1", TEST_PORT);
 
     Assert(client3->Receive().value().opcode == OpError);
     Assert(client3->Receive().has_value() == false);

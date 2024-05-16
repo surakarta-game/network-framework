@@ -1,7 +1,7 @@
 #include <thread>
 #include "connect_to_server.h"
 #include "exceptions.h"
-#include "sockpp/connector.h"
+#include "sockpp/tcp_connector.h"
 #include "sockpp_socket.h"
 #include "validate_address.h"
 
@@ -10,7 +10,7 @@ NetworkFramework::ConnectToServer(const std::string& address_remote, int port_re
     sockpp::initialize();
     try {
         auto addr = ValidateAddress(address_remote, port_remote);
-        auto connector = std::make_unique<sockpp::tcp6_connector>();
+        auto connector = std::make_unique<sockpp::tcp_connector>();
         sockpp::result<> result;
         do {
             result = connector->connect(addr);

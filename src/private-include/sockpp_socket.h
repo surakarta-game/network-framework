@@ -5,7 +5,6 @@
 #include "exceptions.h"
 #include "nlohmann/json.hpp"
 #include "sockpp/inet_address.h"
-#include "sockpp/tcp6_connector.h"
 
 namespace NetworkFramework {
 
