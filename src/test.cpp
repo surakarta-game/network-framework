@@ -3,7 +3,7 @@
 #include <mutex>
 #include "network_framework.h"
 
-#define TEST_PORT 1111
+#define TEST_PORT 7777
 
 enum MyOpcode : NetworkFramework::Opcode {
     OpError = -1,
@@ -88,9 +88,9 @@ int main() {
 
     NetworkFramework::Server server(std::make_shared<ServiceFactory>(), TEST_PORT);
 
-    auto client1 = NetworkFramework::ConnectToServer("localhost", TEST_PORT);
+    auto client1 = NetworkFramework::ConnectToServer("127.0.0.1", TEST_PORT);
     auto client2 = NetworkFramework::ConnectToServer("localhost", TEST_PORT);
-    auto client3 = NetworkFramework::ConnectToServer("localhost", TEST_PORT);
+    auto client3 = NetworkFramework::ConnectToServer("::1", TEST_PORT);
 
     assert(client3->Receive().value().opcode == OpError);
     assert(client3->Receive().has_value() == false);
