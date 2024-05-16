@@ -1,3 +1,15 @@
+/*
+ *  Description: This file defines exceptions.
+ *               All exceptions in this file extends NetworkFramework::BaseException
+ *
+ *  Author(s):
+ *      Nictheboy Li    <nictheboy@outlook.com>
+ *
+ *  License:
+ *      MIT License, feel free to use and modify this file!
+ *
+ */
+
 #pragma once
 #include <stdexcept>
 #include <string>

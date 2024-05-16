@@ -1,3 +1,15 @@
+/*
+ *  Description: This file implements the abstract socket
+ *               defined in include/socket.h, using the Sockpp library.
+ *
+ *  Author(s):
+ *      Nictheboy Li    <nictheboy@outlook.com>
+ *
+ *  License:
+ *      MIT License, feel free to use and modify this file!
+ *
+ */
+
 #pragma once
 #include <stdio.h>
 #include <mutex>

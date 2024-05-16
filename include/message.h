@@ -1,3 +1,17 @@
+/*
+ *  Description: This file defines NetworkFramework::Message,
+ *               which is the message type that can be transfered
+ *               between client and server.
+ *
+ *  Author(s):
+ *      Nictheboy Li    <nictheboy@outlook.com>
+ *
+ *  License:
+ *      MIT License, feel free to use and modify this file!
+ *
+ */
+
+// This message type provides compatibility with the old network framework.
 // See: https://github.com/panjd123/Surakarta/blob/main/network/src/networkdata.h
 
 #pragma once
