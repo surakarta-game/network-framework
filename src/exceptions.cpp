@@ -1,3 +1,15 @@
+/*
+ *  Description: This file implements all the exceptions 
+ *               defined in include/exceptions.h
+ *
+ *  Author(s):
+ *      Nictheboy Li    <nictheboy@outlook.com>
+ *
+ *  License:
+ *      MIT License, feel free to use and modify this file!
+ *
+ */
+
 #include "exceptions.h"
 
 NetworkFramework::InvalidAddressOrPortException::InvalidAddressOrPortException(const std::string& address,

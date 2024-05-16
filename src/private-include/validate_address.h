@@ -1,3 +1,16 @@
+/*
+ *  Description: This file implements a function, ValidateAddress(),
+ *               which converts an address string and a port into
+ *               a Sockpp address.
+ *
+ *  Author(s):
+ *      Nictheboy Li    <nictheboy@outlook.com>
+ *
+ *  License:
+ *      MIT License, feel free to use and modify this file!
+ *
+ */
+
 #pragma once
 #include <iostream>
 #include <sstream>

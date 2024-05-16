@@ -1,3 +1,15 @@
+/*
+ *  Description: This file defines NetworkFramework::Server, which is a class
+ *               that represents a server.
+ *
+ *  Author(s):
+ *      Nictheboy Li    <nictheboy@outlook.com>
+ *
+ *  License:
+ *      MIT License, feel free to use and modify this file!
+ *
+ */
+
 #pragma once
 #include <string>
 #include "service.h"

@@ -1,3 +1,14 @@
+/*
+ *  Description: This file includes all the headers in the network framework.
+ *
+ *  Author(s):
+ *      Nictheboy Li    <nictheboy@outlook.com>
+ *
+ *  License:
+ *      MIT License, feel free to use and modify this file!
+ *
+ */
+
 #pragma once
 
 #include "connect_to_server.h"

@@ -1,3 +1,17 @@
+/*
+ *  Description: This file implements NetworkFramework::Server
+ *               defined in include/connect_to_server.h,
+ *               using NetworkFramework::ServerImpl
+ *               defined in src/private-include/server_impl.h
+ *
+ *  Author(s):
+ *      Nictheboy Li    <nictheboy@outlook.com>
+ *
+ *  License:
+ *      MIT License, feel free to use and modify this file!
+ *
+ */
+
 #include "server.h"
 #include "server_impl.h"
 

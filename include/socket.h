@@ -1,3 +1,15 @@
+/*
+ *  Description: This file defines an abstract socket for
+ *               sending and receiving messages.
+ *
+ *  Author(s):
+ *      Nictheboy Li    <nictheboy@outlook.com>
+ *
+ *  License:
+ *      MIT License, feel free to use and modify this file!
+ *
+ */
+
 #pragma once
 #include <optional>
 #include "exceptions.h"
