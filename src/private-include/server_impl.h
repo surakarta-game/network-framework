@@ -32,15 +32,19 @@ class ServerImpl {
 
         void operator()() {
             while (true) {
-                auto result = acceptor_->accept();
+                sockpp::inet_address peer_address;
+                auto result = acceptor_->accept(&peer_address);
                 if (acceptor_->is_open() == false) {
                     break;
                 }
                 if (result.is_error()) {
                     break;
                 }
+                std::string peer_address_port = peer_address.to_string();
+                std::string peer_address_str = peer_address_port.substr(0, peer_address_port.find(':'));
+                int peer_port = std::stoi(peer_address_port.substr(peer_address_port.find(':') + 1));
                 auto wrapped_socket = std::make_shared<SockppSocket>(
-                    std::make_unique<sockpp::tcp_socket>(result.value().clone()));
+                    std::make_unique<sockpp::tcp_socket>(result.value().clone()), peer_address_str, peer_port);
                 sockets_.push_back(wrapped_socket);
                 std::shared_ptr<Service> service = service_factory_->Create();
                 auto thread = std::make_unique<std::thread>([service, wrapped_socket]() {

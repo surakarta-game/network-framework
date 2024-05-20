@@ -32,6 +32,14 @@ class Socket {
 
     /// @brief Close the socket.
     virtual void Close() = 0;
+
+    /// @brief Get the address of the peer.
+    /// @return The address of the peer.
+    virtual std::string PeerAddress() const = 0;
+
+    /// @brief Get the port of the peer.
+    /// @return The port of the peer.
+    virtual int PeerPort() const = 0;
 };
 
 }  // namespace NetworkFramework
