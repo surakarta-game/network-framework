@@ -23,11 +23,10 @@ class Server {
    public:
     /// @brief
     /// Start listening on the given address and port.
-    /// New connections will be handled by the given service factory, in a new thread.
-    /// @param service_factory A factory that creates services which will be used to handle incoming connections.
+    /// New connections will be handled by a service object, in a new thread.
+    /// @param service A service object which will be used to handle incoming connections.
     /// @param listen_port The port to listen on.
-    /// @param listen_address The address to listen on, use :: for all network interfaces.
-    Server(std::shared_ptr<ServiceFactory> service_factory,
+    Server(std::unique_ptr<Service> service,
            int listen_port);
     ~Server();
 
