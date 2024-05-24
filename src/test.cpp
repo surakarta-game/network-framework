@@ -25,9 +25,12 @@ enum MyOpcode : NetworkFramework::Opcode {
     Op4 = 4,
 };
 
-// Define the data that is shared among the service threads
-// which are created every time a new connection is established.
-struct SharedData {
+// Define the service class that handles all connections.
+class RelayService : public NetworkFramework::Service {
+   private:
+    // Define the data that is shared among the service threads
+    // which are created every time a new connection is established.
+
     // This class is shared among threads, so we need to use mutex to protect it.
     std::mutex mutex;
 
@@ -40,37 +43,28 @@ struct SharedData {
 
     // The socket that is created when the second connection is established.
     std::shared_ptr<NetworkFramework::Socket> second_socket;
-};
-
-// Define the service that is created every time a new connection is established.
-class RelayService : public NetworkFramework::Service {
-   private:
-    std::shared_ptr<SharedData> shared_data;  // shared data among service threads
 
    public:
-    RelayService(std::shared_ptr<SharedData> shared_data)
-        : shared_data(shared_data) {}
-
     void Execute(std::shared_ptr<NetworkFramework::Socket> socket) override {
         std::shared_ptr<NetworkFramework::Socket> peer_socket;
         {  // use lock to protect shared_data, when accessing it
-            std::unique_lock<std::mutex> lock(shared_data->mutex);
-            if (shared_data->first_socket == nullptr) {
-                shared_data->first_socket = socket;
+            std::unique_lock<std::mutex> lock(mutex);
+            if (first_socket == nullptr) {
+                first_socket = socket;
 
                 // wait until the second socket is created
-                shared_data->condition_variable.wait(lock, [&] {
-                    return shared_data->second_socket != nullptr;
+                condition_variable.wait(lock, [&] {
+                    return second_socket != nullptr;
                 });
 
-                peer_socket = shared_data->second_socket;
-            } else if (shared_data->second_socket == nullptr) {  // && shared_data->first_socket != nullptr
-                shared_data->second_socket = socket;
+                peer_socket = second_socket;
+            } else if (second_socket == nullptr) {  // && first_socket != nullptr
+                second_socket = socket;
 
                 // notify the first socket that the second socket is created
-                shared_data->condition_variable.notify_one();
+                condition_variable.notify_one();
 
-                peer_socket = shared_data->first_socket;
+                peer_socket = first_socket;
             } else {
                 socket->Send(NetworkFramework::Message(OpError, "Server is full."));
                 socket->Close();
@@ -89,32 +83,17 @@ class RelayService : public NetworkFramework::Service {
             // Unexpected close from the client side may cause BrokenPipeException.
             // Just ignore it.
         }
-        std::lock_guard<std::mutex> lock(shared_data->mutex);
-        if (shared_data->first_socket) {
-            shared_data->first_socket->Send(NetworkFramework::Message(OpExit));
-            shared_data->first_socket->Close();
-            shared_data->first_socket = nullptr;
+        std::lock_guard<std::mutex> lock(mutex);
+        if (first_socket) {
+            first_socket->Send(NetworkFramework::Message(OpExit));
+            first_socket->Close();
+            first_socket = nullptr;
         }
-        if (shared_data->second_socket) {
-            shared_data->second_socket->Send(NetworkFramework::Message(OpExit));
-            shared_data->second_socket->Close();
-            shared_data->second_socket = nullptr;
+        if (second_socket) {
+            second_socket->Send(NetworkFramework::Message(OpExit));
+            second_socket->Close();
+            second_socket = nullptr;
         }
-    }
-};
-
-// A factory is something that is used to create an instance.
-// This factory is used to create an instance of the RelayService.
-class ServiceFactory : public NetworkFramework::ServiceFactory {
-   private:
-    std::shared_ptr<SharedData> shared_data;
-
-   public:
-    ServiceFactory()
-        : shared_data(std::make_shared<SharedData>()) {}
-
-    std::unique_ptr<NetworkFramework::Service> Create() override {
-        return std::make_unique<RelayService>(shared_data);
     }
 };
 
@@ -130,7 +109,7 @@ int main() {
     constexpr int port = 7777;
 
     // When this object is created, the server starts listening on the given port.
-    NetworkFramework::Server server(std::make_shared<ServiceFactory>(), port);
+    NetworkFramework::Server server(std::make_unique<RelayService>(), port);
 
     // Connect to the server
     auto client1 = NetworkFramework::ConnectToServer("localhost", port);
