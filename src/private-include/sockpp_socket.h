@@ -32,10 +32,10 @@ class SockppSocket final : public Socket {
 
    public:
     SockppSocket(std::unique_ptr<sockpp::socket> socket, std::string peer_address, int peer_port)
-        : socket_read(std::make_unique<sockpp::socket>(socket->clone())),
-          socket_write(std::make_unique<sockpp::socket>(socket->clone())),
-          peer_address(peer_address),
-          peer_port(peer_port) {}
+        : peer_address(peer_address),
+          peer_port(peer_port),
+          socket_read(std::make_unique<sockpp::socket>(socket->clone())),
+          socket_write(std::make_unique<sockpp::socket>(socket->clone())) {}
 
     ~SockppSocket() override {
         Close();
@@ -140,7 +140,7 @@ class SockppSocket final : public Socket {
         if (result.is_error()) {
             throw BrokenPipeException(result.error_message());
         }
-        int length = result.value();
+        auto length = result.value();
         if (length == 0) {
             return false;
         }

@@ -20,7 +20,10 @@
 namespace NetworkFramework {
 
 inline sockpp::inet_address ValidateAddress(const std::string& address, int port) {
-    auto result = sockpp::inet_address::create(address, port);
+    if (port < 0 || port > 65535) {
+        throw InvalidAddressOrPortException(address, port);
+    }
+    auto result = sockpp::inet_address::create(address, (in_port_t)port);
     if (result.is_ok()) {
         return result.value();
     } else {
