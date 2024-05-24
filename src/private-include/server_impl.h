@@ -84,7 +84,9 @@ class ServerImpl {
         : port_(listen_port) {
         sockpp::initialize();
         sockpp::error_code acceptor_error_code;
-        std::unique_ptr<sockpp::tcp_acceptor> acceptor = std::make_unique<sockpp::tcp_acceptor>(listen_port, 5, acceptor_error_code);
+        if (listen_port < 0 || listen_port > 65535)
+            throw InvalidAddressOrPortException("localhost", listen_port);
+        std::unique_ptr<sockpp::tcp_acceptor> acceptor = std::make_unique<sockpp::tcp_acceptor>((in_port_t)listen_port, 5, acceptor_error_code);
         if (acceptor_error_code)
             throw BindPortException(listen_port, acceptor_error_code.message());
         daemon_ = std::make_unique<Daemon>(std::move(acceptor), service);

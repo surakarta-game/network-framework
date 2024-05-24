@@ -140,11 +140,11 @@ class SockppSocket final : public Socket {
         if (result.is_error()) {
             throw BrokenPipeException(result.error_message());
         }
-        int length = result.value();
+        auto length = result.value();
         if (length == 0) {
             return false;
         }
-        assert(length < (int)sizeof(buffer));
+        assert(length < sizeof(buffer));
         buffer[length] = '\0';
         if (length > 0 && buffer[length - 1] != '\n') {
             printf("Received message without newline character, this may cause bugs in other implementations of the protocol");
