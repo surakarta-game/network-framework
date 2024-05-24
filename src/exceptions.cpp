@@ -1,5 +1,5 @@
 /*
- *  Description: This file implements all the exceptions 
+ *  Description: This file implements all the exceptions
  *               defined in include/exceptions.h
  *
  *  Author(s):
@@ -14,9 +14,9 @@
 
 NetworkFramework::InvalidAddressOrPortException::InvalidAddressOrPortException(const std::string& address,
                                                                                int port)
-    : address_(address),
-      port_(port),
-      what_("Invalid address: " + address + ":" + std::to_string(port)) {}
+    : what_("Invalid address: " + address + ":" + std::to_string(port)),
+      address_(address),
+      port_(port) {}
 
 const char* NetworkFramework::InvalidAddressOrPortException::what() const noexcept {
     return what_.c_str();
@@ -47,10 +47,10 @@ NetworkFramework::ConnectionEstablishmentException::ConnectionEstablishmentExcep
     const std::string& address_remote,
     int port_remote,
     const std::string& details)
-    : address_remote_(address_remote),
-      port_remote_(port_remote),
-      what_("Connection establishment failed: remote address: " + address_remote + ":" + std::to_string(port_remote) +
+    : what_("Connection establishment failed: remote address: " + address_remote + ":" + std::to_string(port_remote) +
             ", details: " + details),
+      address_remote_(address_remote),
+      port_remote_(port_remote),
       details_(details) {}
 
 const char* NetworkFramework::ConnectionEstablishmentException::what() const noexcept {
@@ -70,8 +70,8 @@ std::string NetworkFramework::ConnectionEstablishmentException::Details() const 
 }
 
 NetworkFramework::InvalidMessageException::InvalidMessageException(const std::string& message, const std::string& details)
-    : message_(message),
-      what_("Invalid message: message: " + message + ", details: " + details),
+    : what_("Invalid message: message: " + message + ", details: " + details),
+      message_(message),
       details_(details) {}
 
 const char* NetworkFramework::InvalidMessageException::what() const noexcept {
@@ -87,8 +87,8 @@ std::string NetworkFramework::InvalidMessageException::Details() const noexcept 
 }
 
 NetworkFramework::BindPortException::BindPortException(int port, const std::string& details)
-    : port_(port),
-      what_("Failed to bind port: " + std::to_string(port) + ", details: " + details),
+    : what_("Failed to bind port: " + std::to_string(port) + ", details: " + details),
+      port_(port),
       details_(details) {}
 
 const char* NetworkFramework::BindPortException::what() const noexcept {
