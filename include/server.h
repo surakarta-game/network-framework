@@ -26,7 +26,7 @@ class Server {
     /// New connections will be handled by a service object, in a new thread.
     /// @param service A service object which will be used to handle incoming connections.
     /// @param listen_port The port to listen on.
-    Server(std::unique_ptr<Service> service,
+    Server(std::shared_ptr<Service> service,
            int listen_port);
     ~Server();
 

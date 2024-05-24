@@ -27,8 +27,8 @@ class ServerImpl {
    private:
     class Daemon {
        public:
-        Daemon(std::unique_ptr<sockpp::tcp_acceptor> acceptor, std::unique_ptr<Service> service)
-            : acceptor_(std::move(acceptor)), service_(std::move(service)) {}
+        Daemon(std::unique_ptr<sockpp::tcp_acceptor> acceptor, std::shared_ptr<Service> service)
+            : acceptor_(std::move(acceptor)), service_(service) {}
 
         void operator()() {
             while (true) {
@@ -68,7 +68,7 @@ class ServerImpl {
 
        private:
         std::unique_ptr<sockpp::tcp_acceptor> acceptor_;
-        std::unique_ptr<Service> service_;
+        std::shared_ptr<Service> service_;
         std::vector<std::shared_ptr<SockppSocket>> sockets_;
         std::vector<std::unique_ptr<std::thread>> threads_;
     };
@@ -79,7 +79,7 @@ class ServerImpl {
     std::unique_ptr<std::thread> daemon_thread_;
 
    public:
-    ServerImpl(std::unique_ptr<Service> service,
+    ServerImpl(std::shared_ptr<Service> service,
                int listen_port)
         : port_(listen_port) {
         sockpp::initialize();
@@ -87,7 +87,7 @@ class ServerImpl {
         std::unique_ptr<sockpp::tcp_acceptor> acceptor = std::make_unique<sockpp::tcp_acceptor>(listen_port, 5, acceptor_error_code);
         if (acceptor_error_code)
             throw BindPortException(listen_port, acceptor_error_code.message());
-        daemon_ = std::make_unique<Daemon>(std::move(acceptor), std::move(service));
+        daemon_ = std::make_unique<Daemon>(std::move(acceptor), service);
         auto daemon_ptr_copy = daemon_;
         daemon_thread_ = std::make_unique<std::thread>([daemon_ptr_copy]() {
             (*daemon_ptr_copy)();
