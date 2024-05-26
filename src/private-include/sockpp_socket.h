@@ -22,6 +22,8 @@ namespace NetworkFramework {
 
 class SockppSocket final : public Socket {
    private:
+    std::string peer_address;
+    int peer_port;
     std::unique_ptr<sockpp::socket> socket_read;
     std::unique_ptr<sockpp::socket> socket_write;
     std::string received_string;
@@ -29,8 +31,11 @@ class SockppSocket final : public Socket {
     std::mutex mutex_write;
 
    public:
-    SockppSocket(std::unique_ptr<sockpp::socket> socket)
-        : socket_read(std::make_unique<sockpp::socket>(socket->clone())), socket_write(std::make_unique<sockpp::socket>(socket->clone())) {}
+    SockppSocket(std::unique_ptr<sockpp::socket> socket, std::string peer_address, int peer_port)
+        : peer_address(peer_address),
+          peer_port(peer_port),
+          socket_read(std::make_unique<sockpp::socket>(socket->clone())),
+          socket_write(std::make_unique<sockpp::socket>(socket->clone())) {}
 
     ~SockppSocket() override {
         Close();
@@ -116,6 +121,14 @@ class SockppSocket final : public Socket {
         socket_read->close();
     }
 
+    std::string PeerAddress() const override {
+        return peer_address;
+    }
+
+    int PeerPort() const override {
+        return peer_port;
+    }
+
    private:
     bool ReceiveOne() {
         std::lock_guard lk(mutex_read);
@@ -127,7 +140,7 @@ class SockppSocket final : public Socket {
         if (result.is_error()) {
             throw BrokenPipeException(result.error_message());
         }
-        int length = result.value();
+        auto length = result.value();
         if (length == 0) {
             return false;
         }

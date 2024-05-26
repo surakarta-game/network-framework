@@ -37,7 +37,10 @@ NetworkFramework::ConnectToServer(const std::string& address_remote, int port_re
                 port_remote,
                 result.error_message());
         }
-        return std::make_unique<SockppSocket>(std::move(connector));
+        auto peer_address_port = addr.to_string();
+        auto peer_address = peer_address_port.substr(0, peer_address_port.find(':'));
+        auto peer_port = std::stoi(peer_address_port.substr(peer_address_port.find(':') + 1));
+        return std::make_unique<SockppSocket>(std::move(connector), peer_address, peer_port);
     } catch (const std::system_error& error) {
         throw ConnectionEstablishmentException(
             address_remote,
